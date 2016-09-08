@@ -1,8 +1,11 @@
 #include <iostream>
 #include <algorithm>
+#include <vector>
+#include <exception>
+#include <memory>
 #include "cxxopts.hpp"
 
-class cmd_options {
+class CMDOptions {
 private:
 	int n = 5;
 	bool hexagonal = false;
@@ -18,7 +21,7 @@ private:
 			return false;
 		}
 	}
-	void ensure_consistency() {
+	void ensureConsistency() {
 		n = std::max(1, n);
 		if (square && hexagonal) {
 			square = false;
@@ -28,7 +31,7 @@ private:
 		}
 	}
 public:
-	cmd_options() : options("generate", " - Generator of simple maps") {
+	CMDOptions() : options("generate", " - Generator of simple maps") {
 		options.add_options()
 	  	  ("n,size", "size of the map", cxxopts::value<int>(n))
 	  	  ("x,hexagonal", "generate hexagonal maps", cxxopts::value<bool>(hexagonal))
@@ -36,19 +39,19 @@ public:
 	  	  ("h,help", "Prints help", cxxopts::value<bool>(help))
 		;
 	}
-	bool parse_cmd_line(int argc, char* argv[]) {
+	bool parseCMDLine(int argc, char* argv[]) {
 		if (!parse(argc, argv)) {
 			return false;
 		}
-		ensure_consistency();
+		ensureConsistency();
 		return true;
 	}
-	int size() {return n;}
-	bool isHexagonal() {return hexagonal;}
-	bool isSquare() {return square;}
-	bool isHelp() {return help;}
-	std::string help_message() {return options.help({""});}
-	void print() {
+	int size() const {return n;}
+	bool isHexagonal() const {return hexagonal;}
+	bool isSquare() const {return square;}
+	bool isHelp() const {return help;}
+	std::string helpMessage() const {return options.help({""});}
+	void print() const {
 		std::cout << "options = {" 
 				  << "\n  size: " << n
 				  << ",\n  hexagonal: " << hexagonal
@@ -58,18 +61,57 @@ public:
 	}
 };
 
+class MapGenerator {
+protected:
+	int size;
+public:
+	MapGenerator(int size): size(size) {}
+	virtual std::vector<int> generate() = 0;
+	virtual std::string generateAsString() = 0;
+};
+
+class HexagonalMapGenerator : public MapGenerator {
+public:
+	HexagonalMapGenerator(int size): MapGenerator(size) {}
+	virtual std::vector<int> generate() override {
+		return std::vector<int>();
+	}
+	virtual std::string generateAsString() override {
+		return "";
+	}
+};
+
+class SquareMapGenerator : public MapGenerator {
+public:
+	SquareMapGenerator(int size): MapGenerator(size) {}
+	virtual std::vector<int> generate() override {
+		return std::vector<int>();
+	}
+	virtual std::string generateAsString() override {
+		return "";
+	}
+};
+
+std::unique_ptr<MapGenerator> generatorForOptions(const CMDOptions& opts) {
+	if (opts.isHexagonal()) {
+		return std::unique_ptr<MapGenerator>(new HexagonalMapGenerator(opts.size()));
+	}
+	if (opts.isSquare()) {
+		return std::unique_ptr<MapGenerator>(new SquareMapGenerator(opts.size()));	
+	}
+	throw cxxopts::OptionException("CMDOptions are not consistent.");
+}
+
 int main(int argc, char* argv[]) {
-	cmd_options opts;
-	bool ret = opts.parse_cmd_line(argc, argv);
-	if (!ret) {
-		std::cout << opts.help_message() << std::endl;
+	CMDOptions opts;
+	if (!opts.parseCMDLine(argc, argv)) {	
 		return 1;
 	}
-	opts.print();
 	if (opts.isHelp())
 	{
-		std::cout << opts.help_message() << std::endl;
+		std::cout << opts.helpMessage() << std::endl;
 		return 0;
 	}
-	
+	auto gen = generatorForOptions(opts);
+	gen->generate();
 }
