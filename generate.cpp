@@ -3,6 +3,7 @@
 #include <vector>
 #include <exception>
 #include <memory>
+#include <random>
 #include "cxxopts.hpp"
 
 class CMDOptions {
@@ -11,6 +12,10 @@ private:
 	bool hexagonal = false;
 	bool square = false;
 	bool help = false;
+	// These are optional
+	long long seed = 0LL;
+	double ratio = 0.1;
+	// end of optional
 	cxxopts::Options options;
 	bool parse(int argc, char* argv[]) {
 		try {
@@ -35,7 +40,9 @@ public:
 		options.add_options()
 	  	  ("n,size", "size of the map", cxxopts::value<int>(n))
 	  	  ("x,hexagonal", "generate hexagonal maps", cxxopts::value<bool>(hexagonal))
-	  	  ("s,square", "generate square maps", cxxopts::value<bool>(square))
+	  	  ("q,square", "generate square maps", cxxopts::value<bool>(square))
+	  	  ("s,seed", "seed for the random generator", cxxopts::value<long long>(seed))
+	  	  ("r,ratio", "wall block to free block ratio", cxxopts::value<double>(ratio))
 	  	  ("h,help", "Prints help", cxxopts::value<bool>(help))
 		;
 	}
@@ -50,6 +57,10 @@ public:
 	bool isHexagonal() const {return hexagonal;}
 	bool isSquare() const {return square;}
 	bool isHelp() const {return help;}
+	bool hasSeed() const {return (options.count("seed") > 0);}
+	bool hasRatio() const {return (options.count("ratio") > 0);}
+	long long randomSeed() const {return seed;}
+	double wallRatio() const {return ratio;}
 	std::string helpMessage() const {return options.help({""});}
 	void print() const {
 		std::cout << "options = {" 
