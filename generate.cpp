@@ -12,10 +12,7 @@ private:
 	bool mHexagonal = false;
 	bool mSquare = false;
 	bool mHelp = false;
-	// These are optional
-	long mSeed = 0LL;
 	double mRatio = 0.1;
-	// end of optional
 	cxxopts::Options options;
 	bool parse(int argc, char* argv[]) {
 		try {
@@ -27,7 +24,7 @@ private:
 		}
 	}
 	void ensureConsistency() {
-		mSize = std::max(1, mSize);
+		mSize = std::max(2, mSize);
 		if (mSquare && mHexagonal) {
 			mSquare = false;
 		}
@@ -41,7 +38,6 @@ public:
 	  	  ("n,size", "size of the map (default: 5)", cxxopts::value<int>(mSize))
 	  	  ("x,hexagonal", "generate hexagonal maps (default)", cxxopts::value<bool>(mHexagonal))
 	  	  ("q,square", "generate square maps", cxxopts::value<bool>(mSquare))
-	  	  ("s,seed", "seed for the random generator (optional)", cxxopts::value<long>(mSeed))
 	  	  ("r,ratio", "wall block to free block ratio (default: 0.1)", cxxopts::value<double>(mRatio))
 	  	  ("h,help", "Prints help", cxxopts::value<bool>(mHelp))
 		;
@@ -53,14 +49,11 @@ public:
 		ensureConsistency();
 		return true;
 	}
-	int size() const {return mSize;}
+	int getSize() const {return mSize;}
 	bool isHexagonal() const {return mHexagonal;}
 	bool isSquare() const {return mSquare;}
 	bool isHelp() const {return mHelp;}
-	bool hasSeed() const {return (options.count("seed") > 0);}
-	bool hasRatio() const {return (options.count("ratio") > 0);}
-	long randomSeed() const {return mSeed;}
-	double wallRatio() const {return mRatio;}
+	double getRatio() const {return mRatio;}
 	std::string helpMessage() const {return options.help({""});}
 	void print() const {
 		std::cout << "options = {" 
@@ -74,34 +67,50 @@ public:
 
 class MapGenerator {
 protected:
-	int mSize;
+	int mSize = 5;
+	double mRatio = 0.1;
 public:
-	MapGenerator(int size): mSize(size) {}
+	void setRatio(double ratio) {
+		if (ratio < 0 || ratio > 1.0) {
+			return;
+		}
+		mRatio = ratio;
+	}
+	void setSize(int size) {
+		if (size <= 2) {
+			return;
+		}
+		mSize = size;
+	}
+	MapGenerator(int size, double ratio) {
+		setSize(size);
+		setRatio(ratio);
+	}
 	virtual std::vector<int> generate() = 0;
 };
 
-class HexagonalMapGenerator : public MapGenerator {
-public:
-	HexagonalMapGenerator(int size): MapGenerator(size) {}
-	virtual std::vector<int> generate() override {
-		return std::vector<int>();
-	}
+class HexagonalMapGenerator : public MapGenerator {	
+public:	
+	HexagonalMapGenerator(int size, double ratio): MapGenerator(size, ratio) {}
+	virtual std::vector<int> generate() override;
 };
 
 class SquareMapGenerator : public MapGenerator {
 public:
-	SquareMapGenerator(int size): MapGenerator(size) {}
-	virtual std::vector<int> generate() override {
-		return std::vector<int>();
-	}
+	SquareMapGenerator(int size, double ratio): MapGenerator(size, ratio) {}
+	virtual std::vector<int> generate() override;
 };
 
 std::unique_ptr<MapGenerator> generatorForCMDOptions(const CMDOptions& opts) {
 	if (opts.isHexagonal()) {
-		return std::unique_ptr<MapGenerator>(new HexagonalMapGenerator(opts.size()));
+		return std::unique_ptr<MapGenerator>(
+				new HexagonalMapGenerator(opts.getSize(), opts.getRatio())
+			   );
 	}
 	if (opts.isSquare()) {
-		return std::unique_ptr<MapGenerator>(new SquareMapGenerator(opts.size()));	
+		return std::unique_ptr<MapGenerator>(
+				new SquareMapGenerator(opts.getSize(), opts.getRatio())
+			   );	
 	}
 	throw cxxopts::OptionException("CMDOptions are not consistent.");
 }
@@ -119,6 +128,34 @@ void print(const Sequence& sequence)
 		notFirst = true;
 	}
 	std::cout << "]\n";
+}
+
+std::vector<int> HexagonalMapGenerator::generate()
+{
+	// 1.
+	// size = 3n^2 + 3n + ?
+	// 2.
+	// gen. array of (size - 2) elements using ratio
+	// 3.
+	// use random shuffle on array
+	// 4.
+	// num of coordinates where target can be
+	// 5.
+	// sort target coordinates
+	// 6.
+	// randomly pick one
+	// 7.
+	// assemble return vector:
+	// a) rand elements from array
+	// b) fixed source element (which is a free block)
+	// c) picked target element (which is a * block)
+
+	return std::vector<int>();
+}
+
+std::vector<int> SquareMapGenerator::generate()
+{
+	return std::vector<int>();
 }
 
 int main(int argc, char* argv[]) {
