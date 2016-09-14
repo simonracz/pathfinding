@@ -1,4 +1,5 @@
 *.out
 *.o
+*.dSYM
 generate
 annotate
