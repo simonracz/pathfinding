@@ -4,6 +4,10 @@
 #include <exception>
 #include <memory>
 #include <random>
+#include <chrono>
+#include <numeric>
+#include <iterator>
+
 #include "cxxopts.hpp"
 
 class CMDOptions {
@@ -24,7 +28,7 @@ private:
 		}
 	}
 	void ensureConsistency() {
-		mSize = std::max(2, mSize);
+		mSize = std::max(1, mSize);
 		if (mSquare && mHexagonal) {
 			mSquare = false;
 		}
@@ -77,7 +81,7 @@ public:
 		mRatio = ratio;
 	}
 	void setSize(int size) {
-		if (size <= 2) {
+		if (size <= 1) {
 			return;
 		}
 		mSize = size;
@@ -89,6 +93,12 @@ public:
 	virtual std::vector<int> generate() = 0;
 };
 
+/*
+	Example hexagonal map for size == 1
+	    (0,-1) (1,-1)
+	  (-1,0) (0,0) (1, 0)
+	    (-1,1)  (0,1)
+*/
 class HexagonalMapGenerator : public MapGenerator {	
 public:	
 	HexagonalMapGenerator(int size, double ratio): MapGenerator(size, ratio) {}
@@ -118,6 +128,7 @@ std::unique_ptr<MapGenerator> generatorForCMDOptions(const CMDOptions& opts) {
 template <typename Sequence>
 void print(const Sequence& sequence)
 {
+	std::cerr << "sequence.size() = " << sequence.size();
 	std::cout << "[";
 	bool notFirst = false;
 	for (const auto& s : sequence) {
@@ -132,25 +143,54 @@ void print(const Sequence& sequence)
 
 std::vector<int> HexagonalMapGenerator::generate()
 {
-	// 1.
-	// size = 3n^2 + 3n + ?
-	// 2.
-	// gen. array of (size - 2) elements using ratio
-	// 3.
-	// use random shuffle on array
-	// 4.
-	// num of coordinates where target can be
-	// 5.
-	// sort target coordinates
-	// 6.
-	// randomly pick one
-	// 7.
+	int mapSize = 3 * mSize * mSize + 3 * mSize + 1;
+	// generate (size - 2) num of blocks using ratio
+	// 2 blocks are reserved for the start and target position
+	std::vector<int> blocks(mapSize - 2);
+	for (int i = 0; i < mRatio * (mapSize - 2); ++i) {
+		blocks[i] = 1;
+	}
+	// randomize the blocks
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::mt19937 m(seed);
+	std::shuffle(blocks.begin(), blocks.end(), m);
+	// enumerate coordinates where target can be
+	// 1/6 slice of a pizza
+	// where (x, y) x>0, y>=0
+	std::uniform_int_distribution<int> dist(1, (mSize * mSize + mSize) / 2);
+	auto dice = std::bind(dist, m);
+	int target = dice();
 	// assemble return vector:
 	// a) rand elements from array
 	// b) fixed source element (which is a free block)
-	// c) picked target element (which is a * block)
-
-	return std::vector<int>();
+	// c) picked target element (which is a -1 block)
+	std::vector<int> ret;
+	ret.reserve(mapSize);
+	int countToTarget = 0;
+	for (int y = -mSize; y <= mSize; ++y) {
+		for (int x = -mSize; x <= mSize; ++x) {
+			int z = x + y;
+			std::cout << "x: " << x << " y: " << y << "\n";
+			if (z > mSize || z < -mSize) {
+				// We are off the grid
+				continue;
+			}
+			if (x > 0 && y >= 0) {
+				++countToTarget;
+				if (countToTarget == target) {
+					ret.push_back(-1);
+				}
+			}
+			if (x == 0 && y == 0) {
+				ret.push_back(0);
+			}
+			ret.push_back(blocks.back());
+			// ret.push_back(blocks[blocks.size() - 1]);
+			blocks.pop_back();
+		}
+	}
+	std::cerr << "ret.size() = " << ret.size();
+	return ret;
 }
 
 std::vector<int> SquareMapGenerator::generate()
@@ -170,5 +210,12 @@ int main(int argc, char* argv[]) {
 	}
 	auto gen = generatorForCMDOptions(opts);
 	auto map = gen->generate();
+	std::cerr << "map.size() = " << map.size();
 	print(map);
 }
+
+
+
+
+
+
