@@ -128,7 +128,6 @@ std::unique_ptr<MapGenerator> generatorForCMDOptions(const CMDOptions& opts) {
 template <typename Sequence>
 void print(const Sequence& sequence)
 {
-	std::cerr << "sequence.size() = " << sequence.size();
 	std::cout << "[";
 	bool notFirst = false;
 	for (const auto& s : sequence) {
@@ -169,7 +168,7 @@ std::vector<int> HexagonalMapGenerator::generate()
 	int countToTarget = 0;
 	for (int y = -mSize; y <= mSize; ++y) {
 		for (int x = -mSize; x <= mSize; ++x) {
-			int z = x + y;
+			int z = -x - y;
 			std::cout << "x: " << x << " y: " << y << "\n";
 			if (z > mSize || z < -mSize) {
 				// We are off the grid
@@ -179,17 +178,17 @@ std::vector<int> HexagonalMapGenerator::generate()
 				++countToTarget;
 				if (countToTarget == target) {
 					ret.push_back(-1);
+					continue;
 				}
 			}
 			if (x == 0 && y == 0) {
 				ret.push_back(0);
+				continue;
 			}
 			ret.push_back(blocks.back());
-			// ret.push_back(blocks[blocks.size() - 1]);
 			blocks.pop_back();
 		}
 	}
-	std::cerr << "ret.size() = " << ret.size();
 	return ret;
 }
 
@@ -210,7 +209,6 @@ int main(int argc, char* argv[]) {
 	}
 	auto gen = generatorForCMDOptions(opts);
 	auto map = gen->generate();
-	std::cerr << "map.size() = " << map.size();
 	print(map);
 }
 
