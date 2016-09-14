@@ -81,7 +81,7 @@ public:
 		mRatio = ratio;
 	}
 	void setSize(int size) {
-		if (size <= 1) {
+		if (size < 1) {
 			return;
 		}
 		mSize = size;
@@ -169,7 +169,6 @@ std::vector<int> HexagonalMapGenerator::generate()
 	for (int y = -mSize; y <= mSize; ++y) {
 		for (int x = -mSize; x <= mSize; ++x) {
 			int z = -x - y;
-			std::cout << "x: " << x << " y: " << y << "\n";
 			if (z > mSize || z < -mSize) {
 				// We are off the grid
 				continue;
@@ -207,6 +206,7 @@ int main(int argc, char* argv[]) {
 		std::cout << opts.helpMessage() << std::endl;
 		return 0;
 	}
+	// opts.print();
 	auto gen = generatorForCMDOptions(opts);
 	auto map = gen->generate();
 	print(map);
