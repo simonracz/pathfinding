@@ -2,9 +2,9 @@ CC=clang
 CXX=clang++
 RM=rm -f
 
-CXXFLAGS=-g -O0 -std=c++11 -stdlib=libc++ -Wall
+CXXFLAGS=-std=c++11 -stdlib=libc++ -Wall
 
-PRGS=generate
+PRGS=generate annotate
 
 all: $(PRGS)
 

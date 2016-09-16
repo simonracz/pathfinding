@@ -37,7 +37,7 @@ private:
 		}
 	}
 public:
-	CMDOptions() : options("generate", " - Generator of simple maps") {
+	CMDOptions() : options("generate", "Generator of simple maps") {
 		options.add_options()
 	  	  ("n,size", "size of the map (default: 5)", cxxopts::value<int>(mSize))
 	  	  ("x,hexagonal", "generate hexagonal maps (default)", cxxopts::value<bool>(mHexagonal))
