@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <algorithm>
 #include <vector>
 #include <exception>
@@ -7,6 +8,7 @@
 #include <chrono>
 #include <numeric>
 #include <iterator>
+#include <iomanip>
 
 #include "cxxopts.hpp"
 
@@ -69,8 +71,11 @@ void print(const Sequence& sequence)
 
 std::vector<int> readInput() {
 	std::vector<int> v;
+	std::string line;
+	std::getline(std::cin, line);
+	std::istringstream ss{line};
 	char c;
-	std::cin >> c;
+	ss >> c;
 	if (c != '[') {
 		throw cxxopts::OptionException("Input error. Should start with '['.");
 	}
@@ -80,7 +85,7 @@ std::vector<int> readInput() {
 		if (c != ',') {
 			throw cxxopts::OptionException("Input error. Should separate elements by ','.");
 		}
-		std::cin >> i >> c;		
+		ss >> i >> c;		
 		v.push_back(i);
 	}
 	return v;
@@ -106,6 +111,13 @@ std::pair<int, int> prettyPrintMap(std::vector<int> map) {
 			}
 			if (x == 0 && y == 0) {
 				std::cout << " S";
+				++counter;
+				continue;
+			}
+			if (map[counter] == -1) {
+				Tx = x;
+				Ty = y;
+				std::cout << " T";
 				++counter;
 				continue;
 			}
@@ -155,18 +167,20 @@ int main(int argc, char* argv[]) {
 	auto P = std::pair<int, int>{T};
 	std::cout << "\nT = (" << T.first << ", " << T.second << ")\n";
 	std::cout << "Please type in the path coordinates as 'x, y' (default T): ";
+	std::string line;
+	std::getline(std::cin, line);
+	std::istringstream ss{line};
 	char c;
-	std::cin >> std::noskipws >> c >> c;
-	if (c == '\n') {
-		std::cout << "P = (" << P.first << ", " << P.second << ")\n";
+	if (line.length() == 0) {
+		std::cout << "Line length = 0, P = (" << P.first << ", " << P.second << ")\n";
 		return 0;
 	}
-	std::cin >> std::skipws >> P.first >> c;
+	ss >> P.first >> c;
 	if (c != ',') {
-		std::cout << "bad";	
+		std::cout << "\nBad input. Should separate elements with ','.\n";	
 		return 1;
 	}
-	std::cin >> P.second;
+	ss >> P.second;
 	std::cout << "P = (" << P.first << ", " << P.second << ")\n";
 	return 0;	
 }
