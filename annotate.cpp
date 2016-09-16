@@ -91,13 +91,27 @@ std::vector<int> readInput() {
     return v;
 }
 
-std::pair<int, int> prettyPrintMap(std::vector<int> map) {
+std::pair<int, int> prettyPrintMap(const std::vector<int>& map) {
+    std::vector<char> drawMap;
+    for (auto it = map.cbegin(); it != map.cend(); ++it) {
+        if (*it == 0) {
+            drawMap.push_back('.');
+            continue;
+        }
+        if (*it == 1) {
+            drawMap.push_back('#');
+            continue;
+        }
+        if (*it == -1) {
+            drawMap.push_back('T');
+        }
+    }
     std::cout << "\nCoordinate system: (x, y)\n\n"
               << "   (0,-1) (1,-1)\n"
               << " (-1,0) (0,0) (1, 0)\n"
               << "   (-1,1)  (0,1)\n";
     std::cout << "\nAnnotate the best first path from S to T.\n\n";
-    int mSize = (-3 + std::sqrt(9 - 4 * 3 * (1 - map.size()))) / 6;
+    int mSize = (-3 + std::sqrt(9 - 4 * 3 * (1 - drawMap.size()))) / 6;
     int counter = 0;
     int Tx = 0;
     int Ty = 0;
@@ -114,14 +128,11 @@ std::pair<int, int> prettyPrintMap(std::vector<int> map) {
                 ++counter;
                 continue;
             }
-            if (map[counter] == -1) {
+            if (drawMap[counter] == 'T') {
                 Tx = x;
                 Ty = y;
-                std::cout << " T";
-                ++counter;
-                continue;
             }
-            std::cout << " " << map[counter];
+            std::cout << " " << drawMap[counter];
             ++counter;
         }
         std::cout << "\n";
@@ -136,14 +147,11 @@ std::pair<int, int> prettyPrintMap(std::vector<int> map) {
                 // We are off the grid
                 continue;
             }
-            if (map[counter] == -1) {
+            if (drawMap[counter] == 'T') {
                 Tx = x;
                 Ty = y;
-                std::cout << " T";
-                ++counter;
-                continue;
             }
-            std::cout << " " << map[counter];
+            std::cout << " " << drawMap[counter];
             ++counter;
         }
         std::cout << "\n";
@@ -172,7 +180,7 @@ int main(int argc, char* argv[]) {
     std::istringstream ss{line};
     char c;
     if (line.length() == 0) {
-        std::cout << "Line length = 0, P = (" << P.first << ", " << P.second << ")\n";
+        std::cout << "P = (" << P.first << ", " << P.second << ")\n";
         return 0;
     }
     ss >> P.first >> c;
