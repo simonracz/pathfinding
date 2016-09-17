@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <algorithm>
 #include <vector>
 #include <exception>
@@ -159,6 +160,52 @@ std::pair<int, int> prettyPrintMap(const std::vector<int>& map) {
     return std::make_pair(Tx, Ty);
 }
 
+std::pair<int, int> annotate(std::pair<int, int> target) {
+    std::cout << "\nT = (" << target.first << ", " << target.second << ")\n";
+    std::cout << "End coordinates of path, as 'x, y' (default is T): ";
+    std::string line;
+    std::getline(std::cin, line);
+    std::istringstream ss{line};
+    char c;
+    if (line.length() == 0) {        
+        return target;
+    }
+    ss >> target.first >> c;
+    if (c != ',') {
+        throw cxxopts::OptionException("Input error. Should separate elements by ','.");        
+    }
+    ss >> target.second;
+    return target;
+}
+
+void writeToFile(std::string filePath, const std::vector<int>& map, std::pair<int, int> P) {
+    auto fs = std::ofstream(filePath, std::ios::app|std::ios::out);
+    bool notFirst = false;
+    for (auto it = map.cbegin(); it != map.cend(); ++it) {
+        if (notFirst) {
+            fs << ", ";
+        }
+        fs << *it;
+        notFirst = true;
+    }
+    int mSize = (-3 + std::sqrt(9 - 4 * 3 * (1 - map.size()))) / 6;
+    for (int y = -mSize; y <= mSize; ++y) {
+        for (int x = -mSize; x <= mSize; ++x) {
+            int z = -x - y;
+            if (z > mSize || z < -mSize) {
+                continue;
+            }
+            fs << ", ";
+            if (x == P.first && y == P.second) {
+                fs << "1";
+                continue;
+            }
+            fs << "0";
+        }
+    }
+    fs << ";\n";
+}
+
 int main(int argc, char* argv[]) {
     CMDOptions opts;
     if (!opts.parseCMDLine(argc, argv)) {   
@@ -170,27 +217,11 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     // opts.print();
-    auto v = readInput();
-    auto T = prettyPrintMap(v);
-    auto P = std::pair<int, int>{T};
-    std::cout << "\nT = (" << T.first << ", " << T.second << ")\n";
-    std::cout << "Please type in the path coordinates as 'x, y' (default T): ";
-    std::string line;
-    std::getline(std::cin, line);
-    std::istringstream ss{line};
-    char c;
-    if (line.length() == 0) {
-        std::cout << "P = (" << P.first << ", " << P.second << ")\n";
-        return 0;
-    }
-    ss >> P.first >> c;
-    if (c != ',') {
-        std::cout << "\nBad input. Should separate elements with ','.\n";   
-        return 1;
-    }
-    ss >> P.second;
-    std::cout << "P = (" << P.first << ", " << P.second << ")\n";
-    return 0;   
+    auto map = readInput();
+    auto T = prettyPrintMap(map);
+    auto P = annotate(T);
+    writeToFile(opts.getFilePath(), map, P);
+    return 0;
 }
 
 
