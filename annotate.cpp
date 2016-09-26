@@ -178,12 +178,12 @@ std::pair<int, int> annotate(std::pair<int, int> target) {
     return target;
 }
 
-void writeToFile(std::string filePath, const std::vector<int>& map, std::pair<int, int> P) {
+void writeToFile(const std::string& filePath, const std::vector<int>& map, std::pair<int, int> P) {
     auto fs = std::ofstream(filePath, std::ios::app|std::ios::out);
     bool notFirst = false;
     for (auto it = map.cbegin(); it != map.cend(); ++it) {
         if (notFirst) {
-            fs << ", ";
+            fs << " ";
         }
         fs << *it;
         notFirst = true;
@@ -195,7 +195,7 @@ void writeToFile(std::string filePath, const std::vector<int>& map, std::pair<in
             if (z > mSize || z < -mSize) {
                 continue;
             }
-            fs << ", ";
+            fs << " ";
             if (x == P.first && y == P.second) {
                 fs << "1";
                 continue;
@@ -203,7 +203,7 @@ void writeToFile(std::string filePath, const std::vector<int>& map, std::pair<in
             fs << "0";
         }
     }
-    fs << ";\n";
+    fs << "\n";
 }
 
 int main(int argc, char* argv[]) {
