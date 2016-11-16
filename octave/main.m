@@ -1,12 +1,21 @@
 clear ; close all; clc
 
-input_layer_size  = 1519; % 22 radius of hexagonal map
-hidden_layer_size = 1519;
-num_labels = 1519;
+% input_layer_size  = 1519; % 22 radius of hexagonal map
+% hidden_layer_size = 1519;
+% num_labels = 1519;
 
-fprintf('Loading ann.txt.\n');
+% fprintf('Loading ann_22.txt.\n');
+% pause;
+% load('ann_22.txt');
 
-load('ann.txt');
+input_layer_size  = 331; % 10 radius of hexagonal map
+hidden_layer_size = 331;
+num_labels = 331;
+
+fprintf('Loading ann_10.txt.\n');
+pause;
+load('ann_10.txt');
+
 
 tr_size = 300;
 
@@ -15,11 +24,11 @@ sel = randperm(size(XY, 1));
 sel_tr = sel(1:tr_size);
 sel_val = sel((tr_size + 1):end);
 
-X = reshape(XY(sel_tr, 1:1519), tr_size, 1519);
-y = reshape(XY(sel_tr, 1520:end), tr_size, 1519);
+X = reshape(XY(sel_tr, 1:input_layer_size), tr_size, input_layer_size);
+y = reshape(XY(sel_tr, (input_layer_size + 1):end), tr_size, input_layer_size);
 
-X_val = reshape(XY(sel_val, 1:1519), size(XY, 1) - tr_size, 1519);
-y_val = reshape(XY(sel_val, 1520:end), size(XY, 1) - tr_size, 1519);
+X_val = reshape(XY(sel_val, 1:input_layer_size), size(XY, 1) - tr_size, input_layer_size);
+y_val = reshape(XY(sel_val, (input_layer_size + 1):end), size(XY, 1) - tr_size, input_layer_size);
 
 fprintf('Loading finished for X, y, X_val, y_val. Press enter to continue.\n');
 pause;
