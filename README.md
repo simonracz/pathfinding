@@ -8,5 +8,5 @@ Pathfinding with neural networks
 (./generate -n 20 -r 0.3 && cat) | ./annotate
 ```
 
-![path_finding_1](path_finding_1.jpg)
-![path_finding_2](path_finding_2.jpg)
+![path_finding_1](path_finding_1.png)
+![path_finding_2](path_finding_2.png)
